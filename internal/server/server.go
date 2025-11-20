@@ -3,6 +3,7 @@ package server
 import (
 	"embed"
 	"encoding/json"
+	"io/fs"
 	"log"
 	"net/http"
 	"time"
@@ -38,7 +39,11 @@ func NewServer() (*Server, error) {
 }
 
 func (s *Server) routes() {
-	s.mux.Handle("/", http.FileServer(http.FS(staticFiles)))
+	staticFS, err := fs.Sub(staticFiles, "static")
+	if err != nil {
+		log.Fatal(err)
+	}
+	s.mux.Handle("/", http.FileServer(http.FS(staticFS)))
 	s.mux.HandleFunc("/api/metrics", s.handleMetrics)
 }
 
